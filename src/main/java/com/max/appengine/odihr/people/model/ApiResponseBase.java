@@ -3,27 +3,27 @@ package com.max.appengine.odihr.people.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import com.google.api.services.people.v1.model.Person;
+import com.google.api.services.admin.directory.model.User;
 
 public class ApiResponseBase {
   private boolean ok;
   private String msg;
   private Date date;
   private Locale locale;
-  private List<Person> contacts;
+  private List<User> contacts;
 
   public ApiResponseBase() {
     super();
   }
-  
+
   public ApiResponseBase(Locale locale) {
     super();
     this.date = new Date();
     this.ok = true;
     this.locale = locale;
   }
-  
-  public ApiResponseBase(List<Person> feed, Locale locale) {
+
+  public ApiResponseBase(List<User> feed, Locale locale) {
     super();
     this.date = new Date();
     this.ok = true;
@@ -67,11 +67,11 @@ public class ApiResponseBase {
     this.locale = locale;
   }
 
-  public List<Person> getFeed() {
+  public List<User> getFeed() {
     return contacts;
   }
 
-  public void setFeed(List<Person> contacts) {
+  public void setFeed(List<User> contacts) {
     this.contacts = contacts;
   }
 

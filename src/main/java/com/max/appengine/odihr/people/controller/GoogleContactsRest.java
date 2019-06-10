@@ -1,15 +1,21 @@
 package com.max.appengine.odihr.people.controller;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.google.api.services.admin.directory.model.OrgUnit;
+import com.google.api.services.admin.directory.model.User;
 import com.google.api.services.people.v1.model.Person;
-import com.google.gdata.util.ServiceException;
 import com.max.appengine.odihr.people.model.ApiResponseBase;
+import com.max.appengine.odihr.people.model.ApiResponseOrgUnit;
+import com.max.appengine.odihr.people.model.ApiResponsePerson;
 import com.max.appengine.odihr.people.service.GooglePeopleService;
 
 @RestController
@@ -22,16 +28,33 @@ public class GoogleContactsRest {
   }
 
   @RequestMapping("/")
-  public ResponseEntity<ApiResponseBase> index() {
+  public ResponseEntity<ApiResponseBase> index()
+      throws IOException, GeneralSecurityException, URISyntaxException {
     return new ResponseEntity<ApiResponseBase>(new ApiResponseBase(Locale.ENGLISH), HttpStatus.OK);
   }
 
-
-  @RequestMapping("/contacts")
-  public ResponseEntity<ApiResponseBase> contacts() throws IOException, ServiceException {
-    List<Person> feed = this.googlePeopleService.getAllContacts();
+  @RequestMapping("/users")
+  public ResponseEntity<ApiResponseBase> users() throws IOException {
+    List<User> feed = this.googlePeopleService.getAllUsers();
 
     return new ResponseEntity<ApiResponseBase>(new ApiResponseBase(feed, Locale.ENGLISH),
+        HttpStatus.OK);
+  }
+
+  @RequestMapping("/units")
+  public ResponseEntity<ApiResponseBase> units() throws IOException {
+    List<OrgUnit> feed = this.googlePeopleService.getAllUnits();
+
+    return new ResponseEntity<ApiResponseBase>(new ApiResponseOrgUnit(feed, Locale.ENGLISH),
+        HttpStatus.OK);
+  }
+
+  @RequestMapping("/contacts")
+  public ResponseEntity<ApiResponseBase> contacts(@RequestParam String userEmail)
+      throws IOException, GeneralSecurityException {
+    List<Person> feed = this.googlePeopleService.getAllContacts(userEmail);
+
+    return new ResponseEntity<ApiResponseBase>(new ApiResponsePerson(feed, Locale.ENGLISH),
         HttpStatus.OK);
   }
 
