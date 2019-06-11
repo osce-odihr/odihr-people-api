@@ -38,7 +38,7 @@ public class GoogleContactsRest {
   public ResponseEntity<ApiResponseBase> users() throws IOException {
     List<User> users = this.googlePeopleService.getAllUsers();
     List<OrgUnit> units = this.googlePeopleService.getAllUnits();
-    
+
     return new ResponseEntity<ApiResponseBase>(new ApiResponseUsers(units, users, Locale.ENGLISH),
         HttpStatus.OK);
   }
@@ -46,8 +46,9 @@ public class GoogleContactsRest {
   @RequestMapping("/contacts")
   public ResponseEntity<ApiResponseBase> contacts(@RequestParam String userEmail)
       throws IOException, GeneralSecurityException {
-    
-    ApiResponseContacts responseContacts = this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
+
+    ApiResponseContacts responseContacts =
+        this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
@@ -55,10 +56,13 @@ public class GoogleContactsRest {
   @RequestMapping("/contactsUpload")
   public ResponseEntity<ApiResponseBase> contactsUpload(@RequestParam String userEmail,
       @RequestParam String contactsFile) throws IOException, GeneralSecurityException {
-    this.googlePeopleService.addContact(userEmail);
+    
+    this.googlePeopleService.updateContactsFromSheet(userEmail, contactsFile);
 
-    return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(null, null, Locale.ENGLISH),
-        HttpStatus.OK);
+    ApiResponseContacts responseContacts =
+        this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
+
+    return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
 
 }

@@ -103,13 +103,15 @@ public class GooglePeopleService {
         locale);
   }
   
-  public void addContact(String userEmail) throws IOException, GeneralSecurityException {
-    PeopleService service = buildPeopleService(userEmail);
+  public void updateContactsFromSheet(String userEmail, String sheet)
+      throws IOException, GeneralSecurityException {
+    List<Person> contacts = getContactsFromSheet(sheet);
 
-    Person contactToUpdate = service.people().get("people/c1628676881173899160")
-        .setPersonFields(PERSON_FIELDS).execute();
+    PeopleService peopleService = buildPeopleService(userEmail);
 
-    System.out.println(contactToUpdate.getNames());
+    for (Person person : contacts) {
+       this.addContact(peopleService, person);
+    }
   }
 
   public List<OrgUnit> getAllUnits() throws IOException {
@@ -131,6 +133,16 @@ public class GooglePeopleService {
     List<User> users = result.getUsers();
 
     return users;
+  }
+  
+  private void addContact(PeopleService peopleService, Person person) throws IOException, GeneralSecurityException {
+    peopleService.people().createContact(person).execute();
+  }
+  
+  private List<Person> getContactsFromSheet(String sheet) {
+    
+    
+    return null;
   }
   
   private PeopleService buildPeopleService(String userEmail) throws IOException, GeneralSecurityException {
