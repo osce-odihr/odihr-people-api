@@ -112,7 +112,7 @@ public class GooglePeopleService {
   public List<User> getAllUsers() throws IOException {
     Users result = directoryService.users().list()
         .setDomain(DOMAIN)
-        .setMaxResults(10)
+        .setMaxResults(500)
         .setOrderBy("email")
         .execute();
     List<User> users = result.getUsers();

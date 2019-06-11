@@ -5,14 +5,10 @@ import java.util.List;
 import java.util.Locale;
 import com.google.api.services.people.v1.model.Person;
 
-public class ApiResponsePerson extends ApiResponseBase {
+public class ApiResponseContacts extends ApiResponseBase {
   private List<Person> contacts;
 
-  public ApiResponsePerson() {
-    super();
-  }
-
-  public ApiResponsePerson(List<Person> contacts, Locale locale) {
+  public ApiResponseContacts(List<Person> contacts, Locale locale) {
     super();
     this.setDate(new Date());
     this.setOk();
@@ -27,6 +23,4 @@ public class ApiResponsePerson extends ApiResponseBase {
   public void setContacts(List<Person> contacts) {
     this.contacts = contacts;
   }
-
-
 }

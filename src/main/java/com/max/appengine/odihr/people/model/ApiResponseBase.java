@@ -1,16 +1,13 @@
 package com.max.appengine.odihr.people.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
-import com.google.api.services.admin.directory.model.User;
 
 public class ApiResponseBase {
   private boolean ok;
   private String msg;
   private Date date;
   private Locale locale;
-  private List<User> contacts;
 
   public ApiResponseBase() {
     super();
@@ -21,14 +18,6 @@ public class ApiResponseBase {
     this.date = new Date();
     this.ok = true;
     this.locale = locale;
-  }
-
-  public ApiResponseBase(List<User> feed, Locale locale) {
-    super();
-    this.date = new Date();
-    this.ok = true;
-    this.locale = locale;
-    this.contacts = feed;
   }
 
   public boolean isOk() {
@@ -66,14 +55,4 @@ public class ApiResponseBase {
   public void setLocale(Locale locale) {
     this.locale = locale;
   }
-
-  public List<User> getFeed() {
-    return contacts;
-  }
-
-  public void setFeed(List<User> contacts) {
-    this.contacts = contacts;
-  }
-
-
 }
