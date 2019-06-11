@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.google.api.services.admin.directory.model.OrgUnit;
 import com.google.api.services.admin.directory.model.User;
-import com.google.api.services.people.v1.model.Person;
 import com.max.appengine.odihr.people.model.ApiResponseBase;
 import com.max.appengine.odihr.people.model.ApiResponseContacts;
 import com.max.appengine.odihr.people.model.ApiResponseUsers;
@@ -47,10 +46,10 @@ public class GoogleContactsRest {
   @RequestMapping("/contacts")
   public ResponseEntity<ApiResponseBase> contacts(@RequestParam String userEmail)
       throws IOException, GeneralSecurityException {
-    List<Person> feed = this.googlePeopleService.getAllContacts(userEmail);
+    
+    ApiResponseContacts responseContacts = this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
 
-    return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(feed, Locale.ENGLISH),
-        HttpStatus.OK);
+    return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
   
   @RequestMapping("/contactsUpload")
@@ -58,7 +57,7 @@ public class GoogleContactsRest {
       @RequestParam String contactsFile) throws IOException, GeneralSecurityException {
     this.googlePeopleService.addContact(userEmail);
 
-    return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(null, Locale.ENGLISH),
+    return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(null, null, Locale.ENGLISH),
         HttpStatus.OK);
   }
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,9 @@ import com.google.api.services.admin.directory.model.Users;
 import com.google.api.services.people.v1.PeopleService;
 import com.google.api.services.people.v1.PeopleServiceScopes;
 import com.google.api.services.people.v1.model.ListConnectionsResponse;
+import com.google.api.services.people.v1.model.ListContactGroupsResponse;
 import com.google.api.services.people.v1.model.Person;
+import com.max.appengine.odihr.people.model.ApiResponseContacts;
 
 @Service
 public class GooglePeopleService {
@@ -86,24 +89,26 @@ public class GooglePeopleService {
 
     return credential;
   }
-
-  public List<Person> getAllContacts(String userEmail) throws IOException, GeneralSecurityException {
+  
+  public ApiResponseContacts createResponseContacts(String userEmail, Locale locale)
+      throws IOException, GeneralSecurityException {
     PeopleService service = buildPeopleService(userEmail);
 
-    ListConnectionsResponse response = service.people().connections().list("people/me")
-        .setPersonFields(PERSON_FIELDS)
-        .execute();
-        
-    return response.getConnections();
+    ListConnectionsResponse response =
+        service.people().connections().list("people/me").setPersonFields(PERSON_FIELDS).execute();
+
+    ListContactGroupsResponse responseGroups = service.contactGroups().list().execute();
+
+    return new ApiResponseContacts(response.getConnections(), responseGroups.getContactGroups(),
+        locale);
   }
   
   public void addContact(String userEmail) throws IOException, GeneralSecurityException {
     PeopleService service = buildPeopleService(userEmail);
-    
+
     Person contactToUpdate = service.people().get("people/c1628676881173899160")
-        .setPersonFields(PERSON_FIELDS)
-        .execute();
-    
+        .setPersonFields(PERSON_FIELDS).execute();
+
     System.out.println(contactToUpdate.getNames());
   }
 
