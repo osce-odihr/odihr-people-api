@@ -20,6 +20,14 @@ public class ApiResponseBase {
     this.locale = locale;
   }
 
+  public ApiResponseBase(boolean ok, String msg, Locale locale) {
+    super();
+    this.ok = ok;
+    this.msg = msg;
+    this.date = new Date();
+    this.locale = locale;
+  }
+
   public boolean isOk() {
     return ok;
   }

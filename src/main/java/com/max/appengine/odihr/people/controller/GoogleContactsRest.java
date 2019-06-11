@@ -56,11 +56,15 @@ public class GoogleContactsRest {
   @RequestMapping("/contactsUpload")
   public ResponseEntity<ApiResponseBase> contactsUpload(@RequestParam String userEmail,
       @RequestParam String contactsFile) throws IOException, GeneralSecurityException {
-    
-    this.googlePeopleService.updateContactsFromSheet(userEmail, contactsFile);
 
-    ApiResponseContacts responseContacts =
-        this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
+    boolean result = this.googlePeopleService.updateContactsFromSheet(userEmail, contactsFile);
+
+    ApiResponseBase responseContacts;
+    if (result) {
+      responseContacts = this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
+    } else {
+      responseContacts = new ApiResponseBase(false, "Contacts Sheet not valid", Locale.ENGLISH);
+    }
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
