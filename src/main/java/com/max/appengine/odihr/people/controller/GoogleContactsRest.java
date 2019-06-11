@@ -52,5 +52,14 @@ public class GoogleContactsRest {
     return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(feed, Locale.ENGLISH),
         HttpStatus.OK);
   }
+  
+  @RequestMapping("/contactsUpload")
+  public ResponseEntity<ApiResponseBase> contactsUpload(@RequestParam String userEmail,
+      @RequestParam String contactsFile) throws IOException, GeneralSecurityException {
+    this.googlePeopleService.addContact(userEmail);
+
+    return new ResponseEntity<ApiResponseBase>(new ApiResponseContacts(null, Locale.ENGLISH),
+        HttpStatus.OK);
+  }
 
 }

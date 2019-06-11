@@ -46,13 +46,13 @@ public class GooglePeopleService {
   
   private static final String SERVICE_ACCOUNT_ID = "osce-odihr@appspot.gserviceaccount.com";
   
+  private static final String PERSON_FIELDS = "addresses,ageRanges,biographies,birthdays,braggingRights,coverPhotos,emailAddresses,events,genders,imClients,interests,locales,memberships,metadata,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,relationshipInterests,relationshipStatuses,residences,sipAddresses,skills,taglines,urls,userDefined";
+  
   private final NetHttpTransport HTTP_TRANSPORT;
 
   private final Directory directoryService;
 
   private final File KEY_FILE;
-  
-  private PeopleService service;
 
   public GooglePeopleService() throws Exception {
     HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -74,7 +74,7 @@ public class GooglePeopleService {
 
   public Credential authorize(String userEmail) throws IOException, GeneralSecurityException {
     // Load client secrets.
-
+    
     GoogleCredential credential = new GoogleCredential.Builder()
         .setTransport(HTTP_TRANSPORT)
         .setJsonFactory(JSON_FACTORY)
@@ -88,15 +88,23 @@ public class GooglePeopleService {
   }
 
   public List<Person> getAllContacts(String userEmail) throws IOException, GeneralSecurityException {
-    this.service = new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, authorize(userEmail))
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    PeopleService service = buildPeopleService(userEmail);
 
-    ListConnectionsResponse response = this.service.people().connections().list("people/me")
-        .setPersonFields(
-            "addresses,ageRanges,biographies,birthdays,braggingRights,coverPhotos,emailAddresses,events,genders,imClients,interests,locales,memberships,metadata,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,relationshipInterests,relationshipStatuses,residences,sipAddresses,skills,taglines,urls,userDefined")
+    ListConnectionsResponse response = service.people().connections().list("people/me")
+        .setPersonFields(PERSON_FIELDS)
         .execute();
+        
     return response.getConnections();
+  }
+  
+  public void addContact(String userEmail) throws IOException, GeneralSecurityException {
+    PeopleService service = buildPeopleService(userEmail);
+    
+    Person contactToUpdate = service.people().get("people/c1628676881173899160")
+        .setPersonFields(PERSON_FIELDS)
+        .execute();
+    
+    System.out.println(contactToUpdate.getNames());
   }
 
   public List<OrgUnit> getAllUnits() throws IOException {
@@ -118,5 +126,11 @@ public class GooglePeopleService {
     List<User> users = result.getUsers();
 
     return users;
+  }
+  
+  private PeopleService buildPeopleService(String userEmail) throws IOException, GeneralSecurityException {
+    return new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, authorize(userEmail))
+        .setApplicationName(APPLICATION_NAME)
+        .build();
   }
 }
