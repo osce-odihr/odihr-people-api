@@ -80,5 +80,17 @@ public class GoogleContactsRest {
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
+  
+  @RequestMapping("/contactDeleteAll")
+  public ResponseEntity<ApiResponseBase> contactDeleteAll(@RequestParam String userEmail) 
+      throws IOException, GeneralSecurityException {
+
+    this.googlePeopleService.deleteAllFromContacts(userEmail);
+
+    ApiResponseContacts responseContacts =
+        this.googlePeopleService.createResponseContacts(userEmail, Locale.ENGLISH);
+
+    return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
+  }
 
 }
