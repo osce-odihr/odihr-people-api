@@ -141,7 +141,14 @@ public class GooglePeopleService {
       return false;
     }
   }
+  
+  public void deletePersonFromContacts(String userEmail, String resourceName)
+      throws IOException, GeneralSecurityException {
+    PeopleService peopleService = buildPeopleService(userEmail);
 
+    peopleService.people().deleteContact(resourceName).execute();
+  }
+  
   public List<OrgUnit> getAllUnits() throws IOException {
     OrgUnits result = directoryService.orgunits()
         .list(CUSTOMER_ID)
