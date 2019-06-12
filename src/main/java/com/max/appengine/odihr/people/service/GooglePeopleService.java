@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,9 +26,13 @@ import com.google.api.services.admin.directory.model.User;
 import com.google.api.services.admin.directory.model.Users;
 import com.google.api.services.people.v1.PeopleService;
 import com.google.api.services.people.v1.PeopleServiceScopes;
+import com.google.api.services.people.v1.model.ContactGroup;
+import com.google.api.services.people.v1.model.ContactGroupMembership;
+import com.google.api.services.people.v1.model.CreateContactGroupRequest;
 import com.google.api.services.people.v1.model.EmailAddress;
 import com.google.api.services.people.v1.model.ListConnectionsResponse;
 import com.google.api.services.people.v1.model.ListContactGroupsResponse;
+import com.google.api.services.people.v1.model.Membership;
 import com.google.api.services.people.v1.model.Name;
 import com.google.api.services.people.v1.model.Person;
 import com.google.api.services.people.v1.model.PhoneNumber;
@@ -59,6 +65,12 @@ public class GooglePeopleService {
   private static final String SERVICE_ACCOUNT_ID = "osce-odihr@appspot.gserviceaccount.com";
   
   private static final String PERSON_FIELDS = "addresses,ageRanges,biographies,birthdays,braggingRights,coverPhotos,emailAddresses,events,genders,imClients,interests,locales,memberships,metadata,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,relationshipInterests,relationshipStatuses,residences,sipAddresses,skills,taglines,urls,userDefined";
+  
+  private static final String CONTACT_GROUP_MY = "My Contacts";
+  
+  private static final String CONTACT_GROUP_CORE_TEAM = "Core team";
+  
+  private static final String CONTACT_GROUP_NATIONAL_STAFF = "National Staff";
   
   private final NetHttpTransport HTTP_TRANSPORT;
 
@@ -127,11 +139,13 @@ public class GooglePeopleService {
   
   public boolean updateContactsFromSheet(String userEmail, String sheet)
       throws IOException, GeneralSecurityException {
-    List<Person> contacts = getContactsFromSheet(sheet);
+    PeopleService peopleService = buildPeopleService(userEmail);
+    
+    Map<String, String> odihrContactsGroups = prepareOdihrContactsGroups(peopleService);
+    
+    List<Person> contacts = getContactsFromSheet(sheet, odihrContactsGroups);
 
     if (contacts != null) {
-      PeopleService peopleService = buildPeopleService(userEmail);
-  
       for (Person person : contacts) {
          this.addContact(peopleService, person);
       }
@@ -153,11 +167,30 @@ public class GooglePeopleService {
       throws IOException, GeneralSecurityException {
     PeopleService peopleService = buildPeopleService(userEmail);
 
+    Map<String, String> odihrContactsGroups = prepareOdihrContactsGroups(peopleService);
+    
     ListConnectionsResponse response = peopleService.people().connections().list("people/me")
         .setPersonFields(PERSON_FIELDS).execute();
     
     for (Person person : response.getConnections()) {
-      peopleService.people().deleteContact(person.getResourceName()).execute();
+      // check if in sys group
+      boolean toDelete = false;
+
+      for (Membership membership : person.getMemberships()) {
+        if (membership.getContactGroupMembership().getContactGroupResourceName()
+            .equals(odihrContactsGroups.get(CONTACT_GROUP_CORE_TEAM))) {
+          toDelete = true;
+        }
+        
+        if (membership.getContactGroupMembership().getContactGroupResourceName()
+            .equals(odihrContactsGroups.get(CONTACT_GROUP_NATIONAL_STAFF))) {
+          toDelete = true;
+        }
+      }
+
+      if (toDelete) {
+        peopleService.people().deleteContact(person.getResourceName()).execute();
+      }
     }
   }
 
@@ -182,13 +215,69 @@ public class GooglePeopleService {
     return users;
   }
   
+  private Map<String, String> prepareOdihrContactsGroups(
+      PeopleService peopleService) throws IOException {
+    
+    Map<String, String> result = loadOdihrContactsGroups(peopleService);
+    
+    if (!result.containsKey(CONTACT_GROUP_CORE_TEAM) || !result.containsKey(CONTACT_GROUP_NATIONAL_STAFF)) {
+      if (!result.containsKey(CONTACT_GROUP_CORE_TEAM)) {
+        CreateContactGroupRequest requestCreate = new CreateContactGroupRequest();
+        requestCreate.setContactGroup(new ContactGroup().setName(CONTACT_GROUP_CORE_TEAM));
+
+        peopleService.contactGroups().create(requestCreate).execute();
+      }
+
+      if (!result.containsKey(CONTACT_GROUP_NATIONAL_STAFF)) {
+        CreateContactGroupRequest requestCreate = new CreateContactGroupRequest();
+        requestCreate.setContactGroup(new ContactGroup().setName(CONTACT_GROUP_NATIONAL_STAFF));
+
+        peopleService.contactGroups().create(requestCreate).execute();
+      }
+      
+      try {
+        Thread.sleep(10000);
+      } catch (InterruptedException e) {
+      }
+      
+      result = loadOdihrContactsGroups(peopleService);
+    }
+    
+    return result;
+  }
+
+  private Map<String, String> loadOdihrContactsGroups(PeopleService peopleService)
+      throws IOException {
+    
+    ListContactGroupsResponse responseGroups = peopleService.contactGroups().list().execute();
+
+    Map<String, String> result = new HashMap<String, String>();
+
+    for (ContactGroup contactGroup : responseGroups.getContactGroups()) {
+      if (contactGroup.getFormattedName().equals(CONTACT_GROUP_MY)) {
+        result.put(CONTACT_GROUP_MY, contactGroup.getResourceName());
+      }
+
+      if (contactGroup.getFormattedName().equals(CONTACT_GROUP_CORE_TEAM)) {
+        result.put(CONTACT_GROUP_CORE_TEAM, contactGroup.getResourceName());
+      }
+
+      if (contactGroup.getFormattedName().equals(CONTACT_GROUP_NATIONAL_STAFF)) {
+        result.put(CONTACT_GROUP_NATIONAL_STAFF, contactGroup.getResourceName());
+      }
+    }
+
+    return result;
+  }
+  
   private void addContact(PeopleService peopleService, Person person) throws IOException, GeneralSecurityException {
     Person createdContact = peopleService.people().createContact(person).execute();
     System.out.println(createdContact);
   }
   
   @SuppressWarnings({"rawtypes", "unchecked"})
-  private List<Person> getContactsFromSheet(String spreadsheetId) throws IOException {
+  private List<Person> getContactsFromSheet(String spreadsheetId,
+      Map<String, String> odihrContactsGroups) throws IOException {
     final String range = "A:I";
 
     ValueRange response =
@@ -237,6 +326,20 @@ public class GooglePeopleService {
           List phones = new ArrayList<>();
           phones.add(new PhoneNumber().setValue(row.get(8).toString()).setType("mobile"));
           personNew.setPhoneNumbers(phones);
+          
+          List memberships = new ArrayList<>();
+          
+          if (row.get(4).toString().equals("* Core team ::: * myContacts")) {
+            memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
+                .setContactGroupResourceName(odihrContactsGroups.get(CONTACT_GROUP_CORE_TEAM))));
+          } else if (row.get(4).toString().equals("* National Staff ::: * myContacts")) {
+            memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
+                .setContactGroupResourceName(odihrContactsGroups.get(CONTACT_GROUP_NATIONAL_STAFF))));
+          } else {
+            memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
+                .setContactGroupId(odihrContactsGroups.get(CONTACT_GROUP_MY))));
+          }
+          personNew.setMemberships(memberships);
           
           contactsList.add(personNew);
         }
