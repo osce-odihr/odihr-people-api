@@ -10,8 +10,9 @@ public class ApiResponseContacts extends ApiResponseBase {
   private List<Person> contacts;
 
   private List<ContactGroup> contactGroups;
-  
-  public ApiResponseContacts(List<Person> contacts, List<ContactGroup> contactGroups, Locale locale) {
+
+  public ApiResponseContacts(List<Person> contacts, List<ContactGroup> contactGroups,
+      Locale locale) {
     super();
     this.setDate(new Date());
     this.setOk();
@@ -35,5 +36,5 @@ public class ApiResponseContacts extends ApiResponseBase {
   public void setContactGroups(List<ContactGroup> contactGroups) {
     this.contactGroups = contactGroups;
   }
-  
+
 }

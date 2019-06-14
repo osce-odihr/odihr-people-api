@@ -38,7 +38,8 @@ public class IndexControllerTest {
 
   @Test
   public void testLoadIndexPage() throws Exception {
-    MvcResult result = mvc.perform(MockMvcRequestBuilders.get("/")).andExpect(status().isOk()).andReturn();
+    MvcResult result =
+        mvc.perform(MockMvcRequestBuilders.get("/")).andExpect(status().isOk()).andReturn();
     log.info("Index status result = {}", result.getResponse().getContentAsString());
   }
 

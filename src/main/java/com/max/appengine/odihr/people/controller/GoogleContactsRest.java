@@ -52,7 +52,7 @@ public class GoogleContactsRest {
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
-  
+
   @RequestMapping("/contactsUpload")
   public ResponseEntity<ApiResponseBase> contactsUpload(@RequestParam String userEmail,
       @RequestParam String contactsFile) throws IOException, GeneralSecurityException {
@@ -68,7 +68,7 @@ public class GoogleContactsRest {
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
-  
+
   @RequestMapping("/contactDelete")
   public ResponseEntity<ApiResponseBase> contactDelete(@RequestParam String userEmail,
       @RequestParam String resourceName) throws IOException, GeneralSecurityException {
@@ -80,9 +80,9 @@ public class GoogleContactsRest {
 
     return new ResponseEntity<ApiResponseBase>(responseContacts, HttpStatus.OK);
   }
-  
+
   @RequestMapping("/contactDeleteAll")
-  public ResponseEntity<ApiResponseBase> contactDeleteAll(@RequestParam String userEmail) 
+  public ResponseEntity<ApiResponseBase> contactDeleteAll(@RequestParam String userEmail)
       throws IOException, GeneralSecurityException {
 
     this.googlePeopleService.deleteAllFromContacts(userEmail);
