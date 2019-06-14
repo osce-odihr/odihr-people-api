@@ -72,6 +72,8 @@ public class GooglePeopleService {
   
   private static final String CONTACT_GROUP_NATIONAL_STAFF = "National Staff";
   
+  private static final String CONTACT_GROUP_LTO = "LTOs";
+  
   private final NetHttpTransport HTTP_TRANSPORT;
 
   private final Directory directoryService;
@@ -186,6 +188,11 @@ public class GooglePeopleService {
             .equals(odihrContactsGroups.get(CONTACT_GROUP_NATIONAL_STAFF))) {
           toDelete = true;
         }
+        
+        if (membership.getContactGroupMembership().getContactGroupResourceName()
+            .equals(odihrContactsGroups.get(CONTACT_GROUP_LTO))) {
+          toDelete = true;
+        }
       }
 
       if (toDelete) {
@@ -235,6 +242,13 @@ public class GooglePeopleService {
         peopleService.contactGroups().create(requestCreate).execute();
       }
       
+      if (!result.containsKey(CONTACT_GROUP_LTO)) {
+        CreateContactGroupRequest requestCreate = new CreateContactGroupRequest();
+        requestCreate.setContactGroup(new ContactGroup().setName(CONTACT_GROUP_LTO));
+
+        peopleService.contactGroups().create(requestCreate).execute();
+      }
+      
       try {
         Thread.sleep(10000);
       } catch (InterruptedException e) {
@@ -264,6 +278,10 @@ public class GooglePeopleService {
 
       if (contactGroup.getFormattedName().equals(CONTACT_GROUP_NATIONAL_STAFF)) {
         result.put(CONTACT_GROUP_NATIONAL_STAFF, contactGroup.getResourceName());
+      }
+
+      if (contactGroup.getFormattedName().equals(CONTACT_GROUP_LTO)) {
+        result.put(CONTACT_GROUP_LTO, contactGroup.getResourceName());
       }
     }
 
@@ -335,6 +353,9 @@ public class GooglePeopleService {
           } else if (row.get(4).toString().equals("* National Staff ::: * myContacts")) {
             memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
                 .setContactGroupResourceName(odihrContactsGroups.get(CONTACT_GROUP_NATIONAL_STAFF))));
+          } else if (row.get(4).toString().equals("* LTOs ::: * myContacts")) {
+            memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
+                .setContactGroupResourceName(odihrContactsGroups.get(CONTACT_GROUP_LTO))));
           } else {
             memberships.add(new Membership().setContactGroupMembership(new ContactGroupMembership()
                 .setContactGroupId(odihrContactsGroups.get(CONTACT_GROUP_MY))));
