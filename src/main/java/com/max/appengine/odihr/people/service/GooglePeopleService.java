@@ -227,7 +227,9 @@ public class GooglePeopleService {
     
     Map<String, String> result = loadOdihrContactsGroups(peopleService);
     
-    if (!result.containsKey(CONTACT_GROUP_CORE_TEAM) || !result.containsKey(CONTACT_GROUP_NATIONAL_STAFF)) {
+    if (!result.containsKey(CONTACT_GROUP_CORE_TEAM)
+        || !result.containsKey(CONTACT_GROUP_NATIONAL_STAFF)
+        || !result.containsKey(CONTACT_GROUP_LTO)) {
       if (!result.containsKey(CONTACT_GROUP_CORE_TEAM)) {
         CreateContactGroupRequest requestCreate = new CreateContactGroupRequest();
         requestCreate.setContactGroup(new ContactGroup().setName(CONTACT_GROUP_CORE_TEAM));
@@ -290,7 +292,7 @@ public class GooglePeopleService {
   
   private void addContact(PeopleService peopleService, Person person) throws IOException, GeneralSecurityException {
     Person createdContact = peopleService.people().createContact(person).execute();
-    System.out.println(createdContact);
+    System.out.println("createdContact = " + createdContact);
   }
   
   @SuppressWarnings({"rawtypes", "unchecked"})
